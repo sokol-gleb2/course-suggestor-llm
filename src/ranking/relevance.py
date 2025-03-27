@@ -1,5 +1,6 @@
 from ..utils.config import PREPROCESSING, DATA_PATHS
 import pandas as pd
+import numpy as np
 
 def calculate_relevance(alpha, beta, gamma, delta, ner_mat, sbert_mat, tfidf_mat, meta_mat):
     """Calculates relevance for tunes alpha beta gamma delta"""
@@ -36,7 +37,10 @@ if __name__ == "__main__":
     beta = PREPROCESSING['beta']
     gamma = PREPROCESSING['gamma']
     delta = PREPROCESSING['delta']
-    calculate_relevance(alpha, beta, gamma, delta, ner_mat, sbert_mat, tfidf_mat, meta_mat)
+    relvance_mat = calculate_relevance(alpha, beta, gamma, delta, ner_mat, sbert_mat, tfidf_mat, meta_mat)
+
+    # Save
+    np.save(DATA_PATHS['relevance_matrix'], relvance_mat)
     # --------------------------------------------------------------------------------------
 
     pass

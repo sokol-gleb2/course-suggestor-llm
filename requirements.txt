@@ -6,3 +6,10 @@ scikit-learn
 sentence-transformers
 spacy
 tqdm
+datasets
+deap
+matplotlib
+seaborn
+gym 
+transformers
+stable-baselines3

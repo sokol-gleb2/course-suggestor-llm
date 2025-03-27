@@ -3,7 +3,9 @@ import pandas as pd
 
 
 def metadata_encoding(courses):
-    
+    # duration: numerical OR should it be part of max skill overlap
+    # difficulty: one-hot
+    # rating: numerical
     pass
 
 if __name__ == "__main__":

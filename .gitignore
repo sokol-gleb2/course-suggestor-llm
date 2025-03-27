@@ -1,2 +1,4 @@
 data/
 !src/data/
+secret/
+.env

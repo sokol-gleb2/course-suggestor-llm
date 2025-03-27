@@ -5,9 +5,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 
 def tfidf(courses, jobs):
-    model = SentenceTransformer("all-mpnet-base-v2")
-
-    corpus = pd.concat([courses['course_description'], jobs['description']], ignore_index=True)
+    corpus = pd.concat([jobs['description'], courses['course_description']], ignore_index=True)
     
     vectoriser = TfidfVectorizer()
     tfidf_mat = vectoriser.fit_transform(corpus)

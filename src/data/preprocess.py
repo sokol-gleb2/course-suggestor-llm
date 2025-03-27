@@ -1,8 +1,12 @@
 from ..utils.config import PREPROCESSING, DATA_PATHS
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import random
 import re
 import spacy
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.preprocessing import StandardScaler
 import numpy as np
 
 def clean_text(text):
@@ -10,11 +14,6 @@ def clean_text(text):
     text = text.lower()
     text = re.sub(r"\W+", " ", text)  # Remove non-word characters
     return text.strip()
-
-def extract_skills(text):
-    """Extract skills using spaCy NER."""
-    doc = nlp(text)
-    return [ent.text for ent in doc.ents if ent.label_ == "SKILL"]  # Custom NER labels
 
 def clean_job_description(text):
     # Remove "Apply now" and similar phrases
@@ -41,19 +40,27 @@ def preprocess_jobs(jobs_df):
 
 
 def parse_hours(s):
-    # 1) Try pattern like "2 months at 10 hours a week"
+    # Case: "2 months at 10 hours a week"
     match = re.search(r'(\d+)\s+months?\s+at\s+(\d+)\s+hours?\s+a\s+week', s)
     if match:
         months = int(match.group(1))
         hours_per_week = int(match.group(2))
         return months * 4 * hours_per_week
 
-    # 2) Otherwise, try direct hours (e.g. "Approx. 11 hours", "11 hours (approx)")
+    # Case: "4 weeks at 3-5 hours a week"
+    match = re.search(r'(\d+)\s+weeks?\s+at\s+(\d+)-?(\d+)?\s*hours?\s+a\s+week', s)
+    if match:
+        weeks = int(match.group(1))
+        hours_min = int(match.group(2))
+        hours_max = int(match.group(3)) if match.group(3) else hours_min
+        return weeks * (hours_min + hours_max) / 2
+
+    # Case: Approx. XX hours
     match = re.search(r'(\d+)\s+hours?', s)
     if match:
         return int(match.group(1))
-    
-    return None  # If something doesn’t match
+
+    return None
 
 
 def process_courses_1(courses_1):
@@ -165,10 +172,10 @@ def process_courses_2(courses_2):
     courses_2 = courses_2.dropna(subset=['course_time'])
     courses_2.loc[:, 'course_time'] = courses_2['course_time'].replace(
         {
-            '3 - 6 Months': 120,
-            '1 - 3 Months': 40,
-            '1 - 4 Weeks': 15,
-            'Less Than 2 Hours': 2
+            '3 - 6 Months': random.uniform(36, 150),
+            '1 - 3 Months': random.uniform(12, 75),
+            '1 - 4 Weeks': random.uniform(12, 25),
+            'Less Than 2 Hours': random.uniform(1, 2)
         }
     ).infer_objects(copy=False)
 
@@ -193,10 +200,31 @@ def preprocess_courses(courses_1, courses_2):
     """Combines two course datasets together into one - changing and merging columns into one"""
 
     courses_1 = process_courses_1(courses_1)
-    print(courses_1.head())
-
     courses_2 = process_courses_2(courses_2)
-    print(courses_2.head())
+
+
+    # Duration Plots ------------------------------------------------------------------------
+    # Prepare data for boxplot
+    # scaler = StandardScaler()
+    # courses_1[['course_time_stand']] = scaler.fit_transform(courses_1['course_time'])
+    # courses_2[['course_time_stand']] = scaler.fit_transform(courses_2['course_time'])
+
+    # Plot
+    # plt.figure(figsize=(8, 5))
+    # plt.boxplot(data, labels=['Tianyi Ma Dataset', 'Elvin Rustam Dataset'])
+    # plt.ylabel('Course Duration (hours or weeks)')
+    # plt.title('Comparison of Course Durations')
+    # plt.grid(True)
+    # plt.tight_layout()
+    # plt.show()
+
+    # plt.figure(figsize=(8, 5))
+    sns.histplot(courses_1['course_time'], label='Tianyi Ma', kde=True, stat='density', bins=30)
+    sns.histplot(courses_2['course_time'], label='Elvin Rustam', kde=True, stat='density', bins=30, color='orange')
+    plt.legend()
+    plt.xlabel("Duration (hours)")
+    plt.show()
+    # ---------------------------------------------------------------------------------------
     
     
     # Merge ---------------------------------------------------------------------------------
@@ -217,5 +245,6 @@ if __name__ == "__main__":
     jobs_clean = preprocess_jobs(jobs)
 
     # Save processed data
-    courses.to_csv(DATA_PATHS["courses_clean"], index=False)
-    jobs_clean.to_csv(DATA_PATHS["jobs_clean"], index=False)
+    import csv
+    courses.to_csv(DATA_PATHS["courses_clean"], index=False, quoting=csv.QUOTE_ALL)
+    jobs_clean.to_csv(DATA_PATHS["jobs_clean"], index=False, quoting=csv.QUOTE_ALL)

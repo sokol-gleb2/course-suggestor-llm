@@ -7,6 +7,10 @@ DATA_PATHS = {
     "jobs_raw": "data/raw/jobs_raw.csv",
     "courses_clean": "data/processed/courses_clean.csv",
     "jobs_clean": "data/processed/jobs_clean.csv",
+    "courseList_job_judge_scores": "data/scores/courseList_job_judge_scores.json",
+    "relevance_matrix": "data/matrices/relevance.npy",
+    "max_skill_overlap_matrix": "data/matrices/max_skill_overlap.npy",
+    "score_matrix": "data/matrices/score.npy",
 }
 
 # Preprocessing parameters

@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics.pairwise import pairwise_distances
 import ace_tools as tools
+import numpy as np
 
 
 def calc_max_skill_overlap(courses):
@@ -23,6 +24,7 @@ if __name__ == "__main__":
     courses = pd.read_csv(DATA_PATHS["courses_clean"])
 
     jaccard_similarity_matrix = calc_max_skill_overlap(courses)
+    np.save(DATA_PATHS['max_skill_overlap_matrix'], jaccard_similarity_matrix)
 
     # Convert to DataFrame for better visualization
     df = pd.DataFrame(jaccard_similarity_matrix, 
