@@ -2,6 +2,7 @@ from transformers import DistilBertTokenizerFast, DistilBertForSequenceClassific
 from datasets import Dataset
 from ..utils.config import DATA_PATHS
 import pandas as pd
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support, roc_auc_score
 
 def preprocess(row):
     courses = "\n".join(row["course_list"])
@@ -12,6 +13,22 @@ def preprocess(row):
 
 def tokenise(example):
     return tokeniser(example["text"], padding="max_length", truncation=True, max_length=512)
+
+
+def compute_metrics(pred):
+    labels = pred.label_ids
+    preds = pred.predictions.argmax(-1)
+    precision, recall, f1, _ = precision_recall_fscore_support(labels, preds, average='binary')
+    acc = accuracy_score(labels, preds)
+    auc = roc_auc_score(labels, pred.predictions[:, 1])
+    return {
+        'accuracy': acc,
+        'precision': precision,
+        'recall': recall,
+        'f1': f1,
+        'roc_auc': auc
+    }
+
 
 
 if __name__ == "__main__":
@@ -50,7 +67,8 @@ if __name__ == "__main__":
         args=training_args,
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
-        tokenizer=tokeniser
+        tokenizer=tokeniser,
+        compute_metrics=compute_metrics # for eval
     )
 
     # Train
@@ -59,6 +77,10 @@ if __name__ == "__main__":
     # Save model
     trainer.save_model("./distilbert-job-evaluator")
 
+   
+    # Evaluating
+    metrics = trainer.evaluate()
+    print(metrics)
     
     # If I want to deploy
     # huggingface-cli login
@@ -68,3 +90,4 @@ if __name__ == "__main__":
     
     # Then later:
     # model = DistilBertForSequenceClassification.from_pretrained("gleb/distilbert-job-evaluator")
+

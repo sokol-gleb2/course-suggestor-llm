@@ -15,9 +15,8 @@ DATA_PATHS = {
 
 # Preprocessing parameters
 PREPROCESSING = {
-    "alpha": 1,
-    "beta": 1,
-    "gamma": 1,
-    "delta": 1,
-    "lambda": 0.5
+    "alpha": 0.5,
+    "beta": 0.15,
+    "gamma": 0.1,
+    "delta": 0.25
 }

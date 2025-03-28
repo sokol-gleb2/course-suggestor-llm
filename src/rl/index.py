@@ -1,5 +1,9 @@
 import gym
 from gym import spaces
+from src.rl.evaluate import evaluate_gemini_baseline, evaluate_rl_agent, evaluate_tfidf_baseline
+from src.judge.gemini_judgement import query_gemini_for_courses
+from ..utils.config import DATA_PATHS
+import pandas as pd
 
 class CourseRecommenderEnv(gym.Env):
     def __init__(self, course_pool, judge_model, tokenizer, job_desc, alpha=0.5, beta=0.3, max_courses=6):
@@ -87,12 +91,30 @@ if __name__ == "__main__":
     model = PPO("MlpPolicy", env, verbose=1)
     model.learn(total_timesteps=5000)
 
+    # Save for future testing
+    model.save("course_recommender_rl")
+
     # Test
-    obs = env.reset()
-    done = False
-    while not done:
-        action, _ = model.predict(obs)
-        obs, reward, done, _ = env.step(action)
-        env.render()
-    print(f"Final Reward: {reward}")
+    successes = 0
+    total_courses = 0
+    total_reward = 0
+
+    for _ in range(100):
+        obs = env.reset()
+        done = False
+        while not done:
+            action, _ = model.predict(obs)
+            obs, reward, done, _ = env.step(action)
+        total_reward += reward
+        total_courses += sum(env.selected_mask)
+        if reward > 0:
+            successes += 1
+
+    print("Success rate:", successes / 100)
+    print("Avg reward:", total_reward / 100)
+    print("Avg courses used:", total_courses / 100)
+
+    jobs = pd.read_csv(DATA_PATHS["jobs_clean"])
+    print(evaluate_rl_agent(env, model, judge_model))
+    print(evaluate_gemini_baseline(jobs, query_gemini_for_courses, judge_model))
 
